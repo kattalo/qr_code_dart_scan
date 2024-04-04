@@ -312,26 +312,35 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
         break;
     }
 
-    final cameras = await availableCameras();
+    try {
+      final cameras = await availableCameras();
 
-    if (cameras.isEmpty) {
-      if (widget.reportCameraDescriptions != null) {
-        widget.reportCameraDescriptions!(cameras, null);
+      if (cameras.isEmpty) {
+        if (widget.reportCameraDescriptions != null) {
+          widget.reportCameraDescriptions!(cameras, null);
+        }
+
+        return null;
       }
 
+      final firstCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == lensDirection,
+        orElse: () => cameras.first,
+      );
+
+      if (widget.reportCameraDescriptions != null) {
+        widget.reportCameraDescriptions!(cameras, firstCamera);
+      }
+
+      return firstCamera;
+    } catch (e) {
+      // An exception is thrown in local web development when the camera is not
+      // supported. Catch the error to prevent that the QR code scanner crashes.
+      if (widget.reportCameraDescriptions != null) {
+        widget.reportCameraDescriptions!([], null);
+      }
       return null;
     }
-
-    final firstCamera = cameras.firstWhere(
-      (camera) => camera.lensDirection == lensDirection,
-      orElse: () => cameras.first,
-    );
-
-    if (widget.reportCameraDescriptions != null) {
-      widget.reportCameraDescriptions!(cameras, firstCamera);
-    }
-
-    return firstCamera;
   }
 }
 
