@@ -58,8 +58,8 @@ class QRCodeDartScanView extends StatefulWidget {
     this.formats = QRCodeDartScanDecoder.acceptedFormats,
     this.child,
     this.takePictureButtonBuilder,
-    this.widthPreview = double.maxFinite,
-    this.heightPreview = double.maxFinite,
+    this.widthPreview,
+    this.heightPreview,
   }) : super(key: key);
 
   @override
@@ -264,38 +264,26 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       return const SizedBox.shrink();
     }
     var camera = controller!.value;
-
-    var sizePreview = camera.previewSize;
-
-    print('SIZE // camera.previewSize = ${camera.previewSize}');
+    var sizePreview = camera.previewSize!;
 
     if (widget.widthPreview != null) {
-      sizePreview =
-          Size(widget.widthPreview!, widget.widthPreview! / camera.aspectRatio);
+      sizePreview = Size(
+        widget.widthPreview!,
+        widget.widthPreview! / camera.aspectRatio,
+      );
     } else if (widget.heightPreview != null) {
       sizePreview = Size(
-          widget.heightPreview! * camera.aspectRatio, widget.heightPreview!);
+        widget.heightPreview! * camera.aspectRatio,
+        widget.heightPreview!,
+      );
     }
-
-    print('SIZE // sizePreview = $sizePreview');
-
-    var scale = sizePreview!.width / camera.previewSize!.width;
-
-    print('SIZE // scale = $scale');
 
     return SizedBox(
       width: sizePreview.width,
       height: sizePreview.height,
       child: Stack(
         children: [
-          Transform.scale(
-            scale: scale,
-            child: Center(
-              child: CameraPreview(
-                controller!,
-              ),
-            ),
-          ),
+          Center(child: CameraPreview(controller!)),
           if (typeScan == TypeScan.takePicture) _buildButton(),
           if (widget.child != null) widget.child!,
         ],
