@@ -115,10 +115,10 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   @override
   void dispose() {
-    _webImageStreamTimer?.cancel();
-
     WidgetsBinding.instance.removeObserver(this);
+    _webImageStreamTimer?.cancel();
     qrCodeDartScanController.dispose();
+
     super.dispose();
   }
 

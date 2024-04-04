@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qr_code_dart_scan/src/qr_code_dart_scan_view.dart';
 
 ///
@@ -88,7 +89,9 @@ class QRCodeDartScanController {
 
   Future<void>? dispose() async {
     if (typeScan == TypeScan.live) {
-      await _cameraController?.stopImageStream();
+      if (!kIsWeb) {
+        await _cameraController?.stopImageStream();
+      }
     }
     return _cameraController?.dispose();
   }
