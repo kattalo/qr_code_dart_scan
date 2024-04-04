@@ -38,6 +38,10 @@ class QRCodeDartScanController {
     return _cameraController?.setFlashMode(mode);
   }
 
+  Future<void>? setDescription(CameraDescription description) {
+    return _cameraController?.setDescription(description);
+  }
+
   Future<void>? setZoomLevel(double zoom) {
     return _cameraController?.setZoomLevel(zoom);
   }

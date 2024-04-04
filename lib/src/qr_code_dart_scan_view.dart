@@ -47,6 +47,11 @@ class QRCodeDartScanView extends StatefulWidget {
   final double? widthPreview;
   final double? heightPreview;
   final TakePictureButtonBuilder? takePictureButtonBuilder;
+  final void Function(
+    List<CameraDescription> cameras,
+    CameraDescription? initialCamera,
+  )? reportCameraDescriptions;
+
   const QRCodeDartScanView({
     Key? key,
     this.typeCamera = TypeCamera.back,
@@ -60,6 +65,7 @@ class QRCodeDartScanView extends StatefulWidget {
     this.takePictureButtonBuilder,
     this.widthPreview,
     this.heightPreview,
+    this.reportCameraDescriptions,
   }) : super(key: key);
 
   @override
@@ -126,6 +132,10 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   void _initController() async {
     final camera = await _getCamera();
+    if (camera == null) {
+      return;
+    }
+
     controller = CameraController(
       camera,
       widget.resolutionPreset.toResolutionPreset(),
@@ -291,7 +301,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
     );
   }
 
-  Future<CameraDescription> _getCamera() async {
+  Future<CameraDescription?> _getCamera() async {
     final CameraLensDirection lensDirection;
     switch (widget.typeCamera) {
       case TypeCamera.back:
@@ -303,10 +313,25 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
     }
 
     final cameras = await availableCameras();
-    return cameras.firstWhere(
+
+    if (cameras.isEmpty) {
+      if (widget.reportCameraDescriptions != null) {
+        widget.reportCameraDescriptions!(cameras, null);
+      }
+
+      return null;
+    }
+
+    final firstCamera = cameras.firstWhere(
       (camera) => camera.lensDirection == lensDirection,
       orElse: () => cameras.first,
     );
+
+    if (widget.reportCameraDescriptions != null) {
+      widget.reportCameraDescriptions!(cameras, firstCamera);
+    }
+
+    return firstCamera;
   }
 }
 
