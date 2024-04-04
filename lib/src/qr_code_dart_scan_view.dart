@@ -131,6 +131,9 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   }
 
   void _initController() async {
+    // Set qrCodeDartScanController since it's used in dispose()
+    qrCodeDartScanController = widget.controller ?? QRCodeDartScanController();
+
     final camera = await _getCamera();
     if (camera == null) {
       return;
@@ -142,7 +145,6 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
-    qrCodeDartScanController = widget.controller ?? QRCodeDartScanController();
     await controller!.initialize();
     qrCodeDartScanController.configure(controller!, this);
     if (typeScan == TypeScan.live) {
