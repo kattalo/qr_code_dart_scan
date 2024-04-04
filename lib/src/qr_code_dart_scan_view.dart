@@ -145,8 +145,11 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
+    print('camera controller configured');
     await controller!.initialize();
+    print('camera controller initialized');
     qrCodeDartScanController.configure(controller!, this);
+    print('scan controller configured, typeScan: $typeScan');
     if (typeScan == TypeScan.live) {
       _startImageStream();
     }
@@ -158,6 +161,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   }
 
   void _startImageStream() {
+    print('startImageStream: $kIsWeb');
     if (kIsWeb) {
       // Web does not support image stream (tested with camera-0.10.5+9)
       // A workaround is to take a picture every 500 ms :)
@@ -168,6 +172,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       _webImageStreamTimer = Timer.periodic(
         const Duration(milliseconds: 500),
         (_) {
+          print('scanEnabled: ${qrCodeDartScanController.scanEnabled}');
           if (!qrCodeDartScanController.scanEnabled) return;
 
           takePictureAndDecode();
@@ -225,6 +230,8 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       );
 
       if (decoded != null && mounted) {
+        print('decoded: $decoded');
+
         widget.onCapture?.call(decoded);
       }
     }
