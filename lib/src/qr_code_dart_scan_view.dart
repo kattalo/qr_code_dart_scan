@@ -251,26 +251,41 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   }
 
   Widget _getCameraWidget(BuildContext context) {
-    var camera = controller!.value;
-    // fetch screen size
-    final size = MediaQuery.of(context).size;
-
-    // calculate scale depending on screen and camera ratios
-    // this is actually size.aspectRatio / (1 / camera.aspectRatio)
-    // because camera preview size is received as landscape
-    // but we're calculating for portrait orientation
-    Size sizePreview = size;
-    if (widget.widthPreview != null && widget.heightPreview != null) {
-      sizePreview = Size(widget.widthPreview!, widget.heightPreview!);
+    if (controller == null) {
+      if (kDebugMode) print('_getCameraWidget() controller is null');
+      return const SizedBox.shrink();
     }
-    var scale = sizePreview.aspectRatio * camera.aspectRatio;
+    if (!controller!.value.isInitialized) {
+      if (kDebugMode) print('_getCameraWidget() camera not initialized');
+      return const SizedBox.shrink();
+    }
+    if (controller!.value.previewSize == null) {
+      if (kDebugMode) print('_getCameraWidget() preview size not set');
+      return const SizedBox.shrink();
+    }
+    var camera = controller!.value;
 
-    // to prevent scaling down, invert the value
-    if (scale < 1) scale = 1 / scale;
+    var sizePreview = camera.previewSize;
+
+    print('SIZE // camera.previewSize = ${camera.previewSize}');
+
+    if (widget.widthPreview != null) {
+      sizePreview =
+          Size(widget.widthPreview!, widget.widthPreview! / camera.aspectRatio);
+    } else if (widget.heightPreview != null) {
+      sizePreview = Size(
+          widget.heightPreview! * camera.aspectRatio, widget.heightPreview!);
+    }
+
+    print('SIZE // sizePreview = $sizePreview');
+
+    var scale = sizePreview!.width / camera.previewSize!.width;
+
+    print('SIZE // scale = $scale');
 
     return SizedBox(
-      width: widget.widthPreview,
-      height: widget.heightPreview,
+      width: sizePreview.width,
+      height: sizePreview.height,
       child: Stack(
         children: [
           Transform.scale(
@@ -282,7 +297,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
             ),
           ),
           if (typeScan == TypeScan.takePicture) _buildButton(),
-          widget.child ?? const SizedBox.shrink(),
+          if (widget.child != null) widget.child!,
         ],
       ),
     );
