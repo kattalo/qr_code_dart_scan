@@ -172,7 +172,6 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       _webImageStreamTimer = Timer.periodic(
         const Duration(milliseconds: 500),
         (_) {
-          print('scanEnabled: ${qrCodeDartScanController.scanEnabled}');
           if (!qrCodeDartScanController.scanEnabled) return;
 
           takePictureAndDecode();
@@ -217,28 +216,28 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   @override
   Future<void> takePictureAndDecode() async {
+    print('takePictureAndDecode 1: $processingImg');
     if (processingImg) return;
-    setState(() {
-      processingImg = true;
-    });
+    setState(() => processingImg = true);
+    print('takePictureAndDecode 2: $processingImg');
     final xFile = await controller?.takePicture();
+    print('takePictureAndDecode 3: ${xFile != null}');
 
     if (xFile != null) {
       final decoded = await dartScanDecoder.decodeFile(
         xFile,
         scanInverted: widget.scanInvertedQRCode,
       );
+      print('takePictureAndDecode 4: $decoded');
 
       if (decoded != null && mounted) {
-        print('decoded: $decoded');
-
         widget.onCapture?.call(decoded);
       }
     }
+    print('takePictureAndDecode 5:');
 
-    setState(() {
-      processingImg = false;
-    });
+    setState(() => processingImg = false);
+    print('takePictureAndDecode 6');
   }
 
   Widget _buildButton() {
