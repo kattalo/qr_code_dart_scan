@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_dart_scan/src/qr_code_dart_scan_controller.dart';
 import 'package:qr_code_dart_scan/src/util/extensions.dart';
@@ -72,6 +75,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   bool initialized = false;
   bool processingImg = false;
   String? _lastText;
+  Timer? _webImageStreamTimer;
 
   @override
   TypeScan typeScan = TypeScan.live;
@@ -105,9 +109,11 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   @override
   void dispose() {
-    super.dispose();
+    _webImageStreamTimer?.cancel();
+
     WidgetsBinding.instance.removeObserver(this);
     qrCodeDartScanController.dispose();
+    super.dispose();
   }
 
   @override
@@ -140,7 +146,33 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   }
 
   void _startImageStream() {
-    controller?.startImageStream(_imageStream);
+    if (kIsWeb) {
+      // Web does not support image stream (tested with camera-0.10.5+9)
+      // A workaround is to take a picture every 500 ms :)
+      if (_webImageStreamTimer != null) {
+        _webImageStreamTimer!.cancel();
+      }
+
+      _webImageStreamTimer = Timer.periodic(
+        const Duration(milliseconds: 500),
+        (_) {
+          if (!qrCodeDartScanController.scanEnabled) return;
+
+          takePictureAndDecode();
+        },
+      );
+    } else {
+      controller?.startImageStream(_imageStream);
+    }
+  }
+
+  Future<void> _stopImageStream() async {
+    if (kIsWeb) {
+      // Web uses a timer instead of image stream
+      _webImageStreamTimer?.cancel();
+    } else {
+      await controller?.stopImageStream();
+    }
   }
 
   void _imageStream(CameraImage image) async {
@@ -210,7 +242,7 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
     if (typeScan == TypeScan.takePicture) {
       _startImageStream();
     } else {
-      await controller?.stopImageStream();
+      await _stopImageStream();
       processingImg = false;
     }
     setState(() {
