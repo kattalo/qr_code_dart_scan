@@ -117,7 +117,13 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _webImageStreamTimer?.cancel();
-    qrCodeDartScanController.dispose();
+    try {
+      qrCodeDartScanController.dispose();
+    } catch (e) {
+      // This dispose seems to call some "onPause" method on a stream that
+      // causes an exception. Trying to silence it.
+      print('error on dispose: $e');
+    }
 
     super.dispose();
   }
