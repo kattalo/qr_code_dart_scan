@@ -145,11 +145,8 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
-    print('camera controller configured');
     await controller!.initialize();
-    print('camera controller initialized');
     qrCodeDartScanController.configure(controller!, this);
-    print('scan controller configured, typeScan: $typeScan');
     if (typeScan == TypeScan.live) {
       _startImageStream();
     }
@@ -161,7 +158,6 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
   }
 
   void _startImageStream() {
-    print('startImageStream: $kIsWeb');
     if (kIsWeb) {
       // Web does not support image stream (tested with camera-0.10.5+9)
       // A workaround is to take a picture every 500 ms :)
@@ -216,28 +212,22 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   @override
   Future<void> takePictureAndDecode() async {
-    print('takePictureAndDecode 1: $processingImg');
     if (processingImg) return;
     setState(() => processingImg = true);
-    print('takePictureAndDecode 2: $processingImg');
     final xFile = await controller?.takePicture();
-    print('takePictureAndDecode 3: ${xFile != null}');
 
     if (xFile != null) {
       final decoded = await dartScanDecoder.decodeFile(
         xFile,
         scanInverted: widget.scanInvertedQRCode,
       );
-      print('takePictureAndDecode 4: $decoded');
 
       if (decoded != null && mounted) {
         widget.onCapture?.call(decoded);
       }
     }
-    print('takePictureAndDecode 5:');
 
     setState(() => processingImg = false);
-    print('takePictureAndDecode 6');
   }
 
   Widget _buildButton() {
@@ -270,17 +260,15 @@ class QRCodeDartScanViewState extends State<QRCodeDartScanView>
 
   Widget _getCameraWidget(BuildContext context) {
     if (controller == null) {
-      if (kDebugMode) print('_getCameraWidget() controller is null');
       return const SizedBox.shrink();
     }
     if (!controller!.value.isInitialized) {
-      if (kDebugMode) print('_getCameraWidget() camera not initialized');
       return const SizedBox.shrink();
     }
     if (controller!.value.previewSize == null) {
-      if (kDebugMode) print('_getCameraWidget() preview size not set');
       return const SizedBox.shrink();
     }
+
     var camera = controller!.value;
     var sizePreview = camera.previewSize!;
 
